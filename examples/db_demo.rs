@@ -26,7 +26,7 @@ fn main() -> surrealdb::Result<()> {
 async fn run() -> surrealdb::Result<()> {
     // 1. 接続する。サーバー起動は不要、ライブラリとして組み込まれる。
     let db: Surreal<Db> = Surreal::new::<SurrealKv>("target/db_demo.db").await?;
-    db.use_ns("math_app").use_db("dev").await?;
+    db.use_ns("tadoru").use_db("dev").await?;
 
     // 2. スキーマを定義する(今回は簡略化して SCHEMALESS)。
     //    leads_to は choice -> question のグラフエッジ専用テーブル。
