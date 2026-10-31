@@ -1,4 +1,4 @@
-# math_app: 「最初の設問取得」「回答」APIの実装
+# tadoru: 「最初の設問取得」「回答」APIの実装
 
 ## Context
 

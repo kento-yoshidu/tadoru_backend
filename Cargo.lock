@@ -2526,16 +2526,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "47e1ffaa40ddd1f3ed91f717a33c8c0ee23fff369e3aa8772b9605cc1d22f4c3"
 
 [[package]]
-name = "math_app"
-version = "0.1.0"
-dependencies = [
- "actix-web",
- "dotenvy",
- "serde",
- "surrealdb",
-]
-
-[[package]]
 name = "matrixmultiply"
 version = "0.3.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4533,6 +4523,16 @@ dependencies = [
  "objc2-core-foundation",
  "objc2-io-kit",
  "windows",
+]
+
+[[package]]
+name = "tadoru"
+version = "0.1.0"
+dependencies = [
+ "actix-web",
+ "dotenvy",
+ "serde",
+ "surrealdb",
 ]
 
 [[package]]

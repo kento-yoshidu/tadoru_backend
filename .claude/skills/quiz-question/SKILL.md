@@ -1,9 +1,9 @@
 ---
 name: quiz-question
-description: Add a new connected quiz question to docs/content/*.md for math_app, given a keyword/topic or a screenshot of an existing exam question. Use when the user drops a single word, a short topic phrase, or a photo of a quiz/exam question and wants it turned into app content — especially while a file under docs/content/ is open. Never copies an existing exam question's wording verbatim; always rewrites it as an original scenario testing the same underlying concept.
+description: Add a new connected quiz question to docs/content/*.md for tadoru, given a keyword/topic or a screenshot of an existing exam question. Use when the user drops a single word, a short topic phrase, or a photo of a quiz/exam question and wants it turned into app content — especially while a file under docs/content/ is open. Never copies an existing exam question's wording verbatim; always rewrites it as an original scenario testing the same underlying concept.
 ---
 
-# クイズ問題の追加（math_app content）
+# クイズ問題の追加（tadoru content）
 
 `docs/SPEC.md` のデータモデル（`unit` → `question` → `choice`、`leads_to` による連結）に沿った形で、
 `docs/content/*.md` にクイズ問題を追記するスキル。ユーザーがキーワード一語だけ、または既存の試験問題のスクリーンショットを渡してくるので、それをアプリのコンテンツ形式に変換する。

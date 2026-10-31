@@ -53,7 +53,7 @@ fn env_or(key: &str, default: &str) -> String {
 
 async fn connect_db() -> surrealdb::Result<Surreal<Any>> {
     let endpoint = env_or("SURREAL_ENDPOINT", "ws://127.0.0.1:8000");
-    let ns = env_or("SURREAL_NS", "math_app");
+    let ns = env_or("SURREAL_NS", "tadoru");
     let db_name = env_or("SURREAL_DB", "dev");
     let username = env_or("SURREAL_USER", "root");
     let password = env_or("SURREAL_PASS", "root");
