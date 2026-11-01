@@ -1,6 +1,8 @@
 mod model;
-
-use actix_web::{App, HttpResponse, HttpServer, get, web};
+use actix_web::{
+    App, HttpResponse, HttpServer, get, http::header, web,
+};
+use actix_cors::Cors;
 use serde::Serialize;
 use surrealdb::Surreal;
 use surrealdb::engine::any::Any;
@@ -105,7 +107,6 @@ async fn ensure_schema(db: &Surreal<Any>) -> surrealdb::Result<()> {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    // ローカル開発用。.env が無い場合(本番/Renderなど)は無視して環境変数をそのまま使う。
     dotenvy::dotenv().ok();
 
     let db = connect_db()
@@ -116,14 +117,27 @@ async fn main() -> std::io::Result<()> {
 
     let db = web::Data::new(db);
 
-    // ローカルでも Render でも 0.0.0.0 以外を使う理由が無いのでハードコードする。
     let bind_port: u16 = env_or("PORT", "8080").parse().expect("PORT must be a number");
 
-    HttpServer::new(move || App::new()
-        .app_data(db.clone())
-        .service(db_health)
-        .service(list_units))
-        .bind(("0.0.0.0", bind_port))?
-        .run()
-        .await
+    let allowed_origins = env_or("ALLOWED_ORIGINS", "http://localhost:5173");
+
+    HttpServer::new(move || {
+        let mut cors = Cors::default()
+            .allowed_methods(vec!["GET", "POST"])
+            .allowed_header(header::CONTENT_TYPE)
+            .max_age(3600);
+
+        for origin in allowed_origins.split(',') {
+            cors = cors.allowed_origin(origin.trim());
+        }
+
+        App::new()
+            .wrap(cors)
+            .app_data(db.clone())
+            .service(db_health)
+            .service(list_units)
+    })
+    .bind(("0.0.0.0", bind_port))?
+    .run()
+    .await
 }
