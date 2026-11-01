@@ -9,7 +9,7 @@ prior knowledge must be built up step by step before you can reach the answer.
 
 - This repo lives at `c:\github\tadoru\backend\` and is its own git repository.
 - The **frontend** is a *separate* git repository at `c:\github\tadoru\frontend\`
-  (Next.js). The parent folder `c:\github\tadoru\` is just a container, not a repo.
+  (Vite + React + TanStack Query/Router; not created yet). The parent folder `c:\github\tadoru\` is just a container, not a repo.
 - Full product spec (shared with the frontend): [docs/SPEC.md](docs/SPEC.md).
   Implementation plans: [docs/plans/](docs/plans/).
 

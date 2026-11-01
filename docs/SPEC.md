@@ -2,7 +2,7 @@
 
 前提知識を段階的に踏まえないと正解にたどり着けない、連鎖型の一問一答クイズアプリ。
 
-- フロントエンド: React
+- フロントエンド: React (Vite + TanStack Query + TanStack Router)
 - バックエンド: Rust (actix-web)
 - DB: SurrealDB（本番は Surreal Cloud の無料枠。ORMは使わず `surrealdb` クレートで SurrealQL を直接書く）
 
@@ -209,6 +209,8 @@ Content-Type: application/json
 
 ## 4. フロントエンド（React、暫定）
 
+Vite + React のSPAとして作り、データ取得に TanStack Query、ルーティングに TanStack Router を使う。APIはactix-web側にあり、SSRやSEOも今は必要ないので Next.js は採用しない。問題ページのSEOやSNS共有プレビューが必要になったら再検討する。
+
 ### 4.1 画面構成
 
 - `UnitListPage` — ユニット一覧を表示、選択すると挑戦開始APIを叩いて Quiz 画面へ遷移
@@ -246,7 +248,7 @@ body = 'n が奇数のとき $n^2 \equiv 1 \pmod{4}$ となる理由は?'
 ```
 
 - 区切り記法: インライン数式は `$...$`、独立行の数式は `$$...$$` に統一する
-- レンダリングライブラリは **KaTeX** を採用する(`react-katex` などのラッパー経由でNext.jsに組み込む)。MathJaxより軽量・高速で、個人開発で扱う範囲の数式には十分な網羅性があるため
+- レンダリングライブラリは **KaTeX** を採用する(`react-katex` などのラッパー経由でReactに組み込む)。MathJaxより軽量・高速で、個人開発で扱う範囲の数式には十分な網羅性があるため
 
 ## 5. 未決事項（要検討）
 
