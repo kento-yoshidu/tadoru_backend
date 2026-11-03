@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use surrealdb::types::{RecordId, SurrealValue, ToSql};
+use surrealdb::types::{RecordId, RecordIdKey, SurrealValue, ToSql};
 
 /// DB から取得する生のレコード形
 #[derive(Debug, SurrealValue)]
@@ -14,16 +14,6 @@ pub struct UnitResponse {
     pub id: String,
     pub title: String,
     pub description: Option<String>,
-}
-
-impl From<UnitRow> for UnitResponse {
-    fn from(row: UnitRow) -> Self {
-        Self {
-            id: row.id.to_sql(),
-            title: row.title,
-            description: row.description,
-        }
-    }
 }
 
 #[derive(Debug, SurrealValue)]
@@ -44,7 +34,7 @@ impl QuestionResponse {
     /// QuestionRow 単体からの From ではなく、組み合わせて作る専用関数にする
     pub fn from_parts(row: QuestionRow, choices: Vec<ChoiceRow>) -> Self {
         Self {
-            id: row.id.to_sql(),
+            id: record_key(&row.id),
             body: row.body,
             choices: choices.into_iter().map(Into::into).collect(),
         }
@@ -68,14 +58,14 @@ pub struct ChoiceResponse {
 impl From<ChoiceRow> for ChoiceResponse {
     fn from(row: ChoiceRow) -> Self {
         Self {
-            id: row.id.to_sql(),
+            id: record_key(&row.id),
             label: row.label,
             body: row.body,
         }
     }
 }
 
-/// POST /api/questions/:id/answer のリクエストボディ。
+/// POST /api/questions/:id/answer のリクエストボディ
 #[derive(Debug, Deserialize)]
 pub struct AnswerRequest {
     pub choice_id: String,
@@ -89,8 +79,8 @@ pub struct AnswerResponse {
     pub unit_completed: bool,
 }
 
-/// `SELECT ->leads_to->question.* AS next FROM ONLY $choice_id;` の結果の形。
-/// エッジが無ければ next は空配列になる。
+/// `SELECT ->leads_to->question.* AS next FROM ONLY $choice_id;` の結果の形
+/// エッジが無ければ next は空配列になる
 #[derive(Debug, SurrealValue)]
 pub struct NextQuestionRow {
     pub next: Vec<QuestionRow>,
@@ -99,4 +89,21 @@ pub struct NextQuestionRow {
 #[derive(Debug, SurrealValue)]
 pub struct CorrectnessRow {
     pub is_correct: bool,
+}
+
+pub fn record_key(id: &RecordId) -> String {
+    match &id.key {
+        RecordIdKey::String(s) => s.clone(),
+        key => key.to_sql(),
+    }
+}
+
+impl From<UnitRow> for UnitResponse {
+    fn from(row: UnitRow) -> Self {
+        Self {
+            id: record_key(&row.id),
+            title: row.title,
+            description: row.description,
+        }
+    }
 }

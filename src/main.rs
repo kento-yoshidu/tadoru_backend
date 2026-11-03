@@ -1,16 +1,20 @@
 mod model;
+use actix_web::dev::always_ready;
+use actix_web::http::header::RETRY_AFTER;
 use actix_web::{
     App, HttpResponse, HttpServer, get, http::header, web,
 };
 use actix_cors::Cors;
 use serde::Serialize;
-use surrealdb::Surreal;
+use surrealdb::{Surreal, types::RecordId};
 use surrealdb::engine::any::Any;
 use surrealdb::opt::auth::Root;
 use model::{
     UnitRow,
     UnitResponse,
 };
+
+use crate::model::{ChoiceRow, QuestionResponse, QuestionRow};
 
 /// DB接続の死活監視用
 #[derive(Debug, Serialize)]
@@ -51,6 +55,43 @@ async fn list_units(db: web::Data<Surreal<Any>>) -> HttpResponse {
 
 fn env_or(key: &str, default: &str) -> String {
     std::env::var(key).unwrap_or_else(|_| default.to_string())
+}
+
+#[get("/api/units/{unit_id}/start")]
+async  fn unit_start(db: web::Data<Surreal<Any>>, path: web::Path<String>) -> HttpResponse {
+    let unit_id = RecordId::new("unit", path.into_inner());
+
+    let mut res = match db
+        .query("SELECT start_question.id AS id, start_question.body as body FROM ONLY $unit_id;")
+        .bind(("unit_id", unit_id))
+        .await
+    {
+        Ok(res) => res,
+        Err(err) => return HttpResponse::InternalServerError().body(err.to_string()),
+    };
+
+    let question: Option<QuestionRow> = match res.take(0) {
+        Ok(question) => question,
+        Err(err) => return HttpResponse::InternalServerError().body(err.to_string()),
+    };
+
+    let Some(question) = question else {
+        return HttpResponse::NotFound().finish();
+    };
+
+    let choices = match fetch_choices(&db, &question.id).await {
+        Ok(choices) => choices,
+        Err(err) => return HttpResponse::InternalServerError().body(err.to_string()),
+    };
+
+    HttpResponse::Ok().json(QuestionResponse::from_parts(question, choices))
+}
+
+async fn fetch_choices(db: &Surreal<Any>, question_id: &RecordId) -> surrealdb::Result<Vec<ChoiceRow>> {
+    db.query("SELECT id, label, body FROM choice WHERE question = $question_id ORDER BY label;")
+        .bind(("question_id", question_id.clone()))
+        .await?
+        .take(0)
 }
 
 async fn connect_db() -> surrealdb::Result<Surreal<Any>> {
@@ -136,6 +177,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(db.clone())
             .service(db_health)
             .service(list_units)
+            .service(unit_start)
     })
     .bind(("0.0.0.0", bind_port))?
     .run()
