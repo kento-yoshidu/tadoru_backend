@@ -1,6 +1,5 @@
 mod model;
-use actix_web::dev::always_ready;
-use actix_web::http::header::RETRY_AFTER;
+use actix_web::post;
 use actix_web::{
     App, HttpResponse, HttpServer, get, http::header, web,
 };
@@ -14,7 +13,7 @@ use model::{
     UnitResponse,
 };
 
-use crate::model::{ChoiceRow, QuestionResponse, QuestionRow};
+use crate::model::{AnswerRequest, AnswerResponse, ChoiceRow, CorrectnessRow, QuestionResponse, QuestionRow};
 
 /// DB接続の死活監視用
 #[derive(Debug, Serialize)]
@@ -58,7 +57,7 @@ fn env_or(key: &str, default: &str) -> String {
 }
 
 #[get("/api/units/{unit_id}/start")]
-async  fn unit_start(db: web::Data<Surreal<Any>>, path: web::Path<String>) -> HttpResponse {
+async fn unit_start(db: web::Data<Surreal<Any>>, path: web::Path<String>) -> HttpResponse {
     let unit_id = RecordId::new("unit", path.into_inner());
 
     let mut res = match db
@@ -85,6 +84,50 @@ async  fn unit_start(db: web::Data<Surreal<Any>>, path: web::Path<String>) -> Ht
     };
 
     HttpResponse::Ok().json(QuestionResponse::from_parts(question, choices))
+}
+
+#[post("/api/questions/{question_id}/answer")]
+async fn answer_question(
+    db: web::Data<Surreal<Any>>,
+    path: web::Path<String>,
+    body: web::Json<AnswerRequest>,
+) -> HttpResponse {
+    let question_id = RecordId::new("question", path.into_inner());
+    let choice_id = RecordId::new("choice", body.into_inner().choice_id);
+
+    let mut res = match db
+        .query("SELECT is_correct FROM choice WHERE id = $choice_id AND question = $question_id;")
+        .bind(("choice_id", choice_id.clone()))
+        .bind(("question_id", question_id))
+        .await
+    {
+        Ok(res) => res,
+        Err(err) => return HttpResponse::InternalServerError().body(err.to_string()),
+    };
+
+    let rows: Vec<CorrectnessRow> = match res.take(0) {
+        Ok(rows) => rows,
+        Err(err) => return HttpResponse::InternalServerError().body(err.to_string()),
+    };
+
+    let Some(correctness) = rows.into_iter().next() else {
+        return HttpResponse::NotFound().finish();
+    };
+
+    if !correctness.is_correct {
+        return HttpResponse::Ok().json(AnswerResponse {
+            correct: false,
+            next_question: None,
+            unit_completed: false,
+        });
+    }
+
+    // 次のステップで、ここに次の問題の取得を追加する
+    HttpResponse::Ok().json(AnswerResponse {
+        correct: true,
+        next_question: None,
+        unit_completed: false,
+    })
 }
 
 async fn fetch_choices(db: &Surreal<Any>, question_id: &RecordId) -> surrealdb::Result<Vec<ChoiceRow>> {
@@ -178,6 +221,7 @@ async fn main() -> std::io::Result<()> {
             .service(db_health)
             .service(list_units)
             .service(unit_start)
+            .service(answer_question)
     })
     .bind(("0.0.0.0", bind_port))?
     .run()
