@@ -13,7 +13,9 @@ use model::{
     UnitResponse,
 };
 
-use crate::model::{AnswerRequest, AnswerResponse, ChoiceRow, CorrectnessRow, QuestionResponse, QuestionRow};
+use crate::model::{
+    AnswerRequest, AnswerResponse, ChoiceRow, CorrectnessRow, NextQuestionRow, QuestionResponse, QuestionRow,
+};
 
 /// DB接続の死活監視用
 #[derive(Debug, Serialize)]
@@ -122,10 +124,36 @@ async fn answer_question(
         });
     }
 
-    // 次のステップで、ここに次の問題の取得を追加する
+    let mut res = match db
+        .query("SELECT ->leads_to->question.{id, body} AS next FROM ONLY $choice_id;")
+        .bind(("choice_id", choice_id))
+        .await
+    {
+        Ok(res) => res,
+        Err(err) => return HttpResponse::InternalServerError().body(err.to_string()),
+    };
+
+    let next: Option<NextQuestionRow> = match res.take(0) {
+        Ok(next) => next,
+        Err(err) => return HttpResponse::InternalServerError().body(err.to_string()),
+    };
+
+    let Some(next_question) = next.and_then(|row| row.next.into_iter().next()) else {
+        return HttpResponse::Ok().json(AnswerResponse {
+            correct: true,
+            next_question: None,
+            unit_completed: true,
+        });
+    };
+
+    let choices = match fetch_choices(&db, &next_question.id).await {
+        Ok(choices) => choices,
+        Err(err) => return HttpResponse::InternalServerError().body(err.to_string()),
+    };
+
     HttpResponse::Ok().json(AnswerResponse {
         correct: true,
-        next_question: None,
+        next_question: Some(QuestionResponse::from_parts(next_question, choices)),
         unit_completed: false,
     })
 }
