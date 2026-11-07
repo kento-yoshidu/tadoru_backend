@@ -20,12 +20,14 @@ pub struct UnitResponse {
 pub struct QuestionRow {
     pub id: RecordId,
     pub body: String,
+    pub branch_of: Option<RecordId>,
 }
 
 #[derive(Debug, Serialize)]
 pub struct QuestionResponse {
     pub id: String,
     pub body: String,
+    pub is_branch: bool,
     pub choices: Vec<ChoiceResponse>,
 }
 
@@ -36,6 +38,7 @@ impl QuestionResponse {
         Self {
             id: record_key(&row.id),
             body: row.body,
+            is_branch: row.branch_of.is_some(),
             choices: choices.into_iter().map(Into::into).collect(),
         }
     }
@@ -76,6 +79,7 @@ pub struct AnswerRequest {
 pub struct AnswerResponse {
     pub correct: bool,
     pub next_question: Option<QuestionResponse>,
+    pub branch_question: Option<QuestionResponse>,
     pub unit_completed: bool,
 }
 
@@ -89,6 +93,7 @@ pub struct NextQuestionRow {
 #[derive(Debug, SurrealValue)]
 pub struct CorrectnessRow {
     pub is_correct: bool,
+    pub branch_of: Option<RecordId>,
 }
 
 pub fn record_key(id: &RecordId) -> String {
