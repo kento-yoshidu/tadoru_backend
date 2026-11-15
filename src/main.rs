@@ -294,6 +294,133 @@ async fn ensure_schema(db: &Surreal<Any>) -> surrealdb::Result<()> {
             title = '原始ピタゴラス数の偶奇性を証明する',
             description = 'a, b の偶奇を mod 4 の議論から導く',
             start_question = question:q1;
+
+        -- ===== unit: ターメリックと黒コショウ =====
+        -- 成分 → 吸収の概念 → 吸収されにくい理由 → 代謝の仕組み → 黒コショウの成分
+        -- → 作用の仕組み → 効果の大きさ → 注意点 → 数字の読み方
+
+        -- t1: ターメリックの主成分
+        UPSERT question:turmeric1 SET
+            body = 'カレーの黄色のもとになるスパイス、ターメリック(ウコン)。その黄色い色素であり、健康効果の研究対象としてよく取り上げられる主な成分はどれか。',
+            explanation = 'クルクミンはポリフェノールの一種で、ターメリックの黄色のもと。抗炎症作用などが研究されてきたが、「摂っても体にほとんど取り込まれない」という大きな弱点がある。その弱点を理解するために、まず「体に取り込まれる」とはどういうことかを考える。';
+        UPSERT choice:turmeric1_a SET question = question:turmeric1, label = 'A', body = 'カプサイシン', is_correct = false,
+            feedback = 'カプサイシンは唐辛子の辛味成分。';
+        UPSERT choice:turmeric1_b SET question = question:turmeric1, label = 'B', body = 'クルクミン', is_correct = true;
+        UPSERT choice:turmeric1_c SET question = question:turmeric1, label = 'C', body = 'ピペリン', is_correct = false,
+            feedback = 'ピペリンは黒コショウの辛味成分。このユニットの後半で登場する。';
+        UPSERT choice:turmeric1_d SET question = question:turmeric1, label = 'D', body = 'アントシアニン', is_correct = false,
+            feedback = 'アントシアニンはブルーベリーや紫芋などに含まれる青紫色の色素。';
+
+        -- t2: バイオアベイラビリティとは
+        UPSERT question:turmeric2 SET
+            body = '栄養学や薬学でいう「バイオアベイラビリティ(生物学的利用能)」とは、何を表す指標か。',
+            explanation = '口から摂った成分は、腸で吸収され、肝臓を通ってから全身の血液に入る。その途中で吸収されなかったり分解されたりすると、血中に届く量は減る。この「届く割合」がバイオアベイラビリティ。次は、クルクミンの場合にこの割合がどうなるかを見る。';
+        UPSERT choice:turmeric2_a SET question = question:turmeric2, label = 'A', body = '食品1gあたりに含まれる成分の量', is_correct = false,
+            feedback = 'それは含有量。たくさん含まれていても、体に取り込まれなければ意味がない。';
+        UPSERT choice:turmeric2_b SET question = question:turmeric2, label = 'B', body = '成分が体内で効果を発揮し始めるまでの時間', is_correct = false,
+            feedback = 'それは効き始めの速さで、別の指標。';
+        UPSERT choice:turmeric2_c SET question = question:turmeric2, label = 'C', body = '摂取した成分のうち、変化せずに血液(全身の循環)まで届いて利用できる割合', is_correct = true;
+        UPSERT choice:turmeric2_d SET question = question:turmeric2, label = 'D', body = '成分が体の外に排出されるまでの時間', is_correct = false,
+            feedback = '体内にとどまる時間(半減期など)は別の指標。';
+
+        -- t3: クルクミンのバイオアベイラビリティが低い理由
+        UPSERT question:turmeric3 SET
+            body = 'クルクミンはバイオアベイラビリティが非常に低いことで知られる。その理由として最も適切なものはどれか。',
+            explanation = 'クルクミンは脂溶性で水に溶けにくく、そもそも腸からの吸収が悪い。さらに、吸収された分も腸の壁や肝臓で素早く代謝され、すぐに排出されてしまう。この「吸収後の代謝」が鍵になるので、次はその代謝の中身を見る。';
+        UPSERT choice:turmeric3_a SET question = question:turmeric3, label = 'A', body = '胃酸で完全に分解され、腸まで届かないから', is_correct = false,
+            feedback = '胃酸で全部分解されるわけではない。主な問題は、腸での吸収されにくさと、吸収後の速い代謝。';
+        UPSERT choice:turmeric3_b SET question = question:turmeric3, label = 'B', body = '水に溶けにくいため腸から吸収されにくく、吸収されても腸の壁や肝臓ですぐ代謝されて排出されるから', is_correct = true;
+        UPSERT choice:turmeric3_c SET question = question:turmeric3, label = 'C', body = '分子が大きすぎて、腸の壁を一切通過できないから', is_correct = false,
+            feedback = '一切通過しないわけではない。少しは吸収されるが、その後すぐ代謝されてしまう点が大きい。';
+        UPSERT choice:turmeric3_d SET question = question:turmeric3, label = 'D', body = '腸内細菌がすべて分解してしまうから', is_correct = false,
+            feedback = '腸内細菌による代謝も一部あるが、「すべて」ではなく、主な理由でもない。';
+
+        -- t4: グルクロン酸抱合
+        UPSERT question:turmeric4 SET
+            body = 'クルクミンの代謝で中心となる「グルクロン酸抱合」は、肝臓や腸の壁で行われる。これは体にとってどのような役割を持つ代謝か。',
+            explanation = 'グルクロン酸抱合は、薬や体の外から入ってきた物質を水に溶けやすい形に変えて排出する、いわば「体の掃除の仕組み」。クルクミンはこの仕組みですぐに処理されてしまう。では、この掃除を一時的に遅らせることができたら? ここで黒コショウが登場する。';
+        UPSERT choice:turmeric4_a SET question = question:turmeric4, label = 'A', body = '成分にグルクロン酸をくっつけて水に溶けやすくし、尿や胆汁で体の外へ出しやすくする', is_correct = true;
+        UPSERT choice:turmeric4_b SET question = question:turmeric4, label = 'B', body = '成分を分解してエネルギーに変える', is_correct = false,
+            feedback = 'エネルギーを作る代謝ではない。体の外に出すための変換。';
+        UPSERT choice:turmeric4_c SET question = question:turmeric4, label = 'C', body = '成分を脂肪組織に蓄え、必要なときに放出する', is_correct = false,
+            feedback = 'むしろ逆で、体の外に出しやすくする仕組み。';
+        UPSERT choice:turmeric4_d SET question = question:turmeric4, label = 'D', body = '成分の効き目を強めるために、より作用の強い形に変える', is_correct = false,
+            feedback = '抱合は多くの場合、成分を作用の弱い、排出しやすい形に変える。';
+
+        -- t5: 黒コショウの辛味成分
+        UPSERT question:turmeric5 SET
+            body = '黒コショウのピリッとした辛味のもとになっている主な成分はどれか。',
+            explanation = 'ピペリンはアルカロイドの一種で、黒コショウの辛味のもと。実はこのピペリンには、体内での代謝を妨げる作用があることが知られている。';
+        UPSERT choice:turmeric5_a SET question = question:turmeric5, label = 'A', body = 'カプサイシン', is_correct = false,
+            feedback = 'カプサイシンは唐辛子の辛味成分。';
+        UPSERT choice:turmeric5_b SET question = question:turmeric5, label = 'B', body = 'アリシン', is_correct = false,
+            feedback = 'アリシンはニンニクの刺激臭・辛味のもと。';
+        UPSERT choice:turmeric5_c SET question = question:turmeric5, label = 'C', body = 'ジンゲロール', is_correct = false,
+            feedback = 'ジンゲロールはショウガの辛味成分。';
+        UPSERT choice:turmeric5_d SET question = question:turmeric5, label = 'D', body = 'ピペリン', is_correct = true;
+
+        -- t6: ピペリンがクルクミンの吸収率を上げる仕組み
+        UPSERT question:turmeric6 SET
+            body = 'クルクミンは黒コショウと一緒に摂ると、血中濃度が大きく上がることが報告されている。ここまでの内容を踏まえて、その理由として最も適切なものはどれか。',
+            explanation = '黒コショウのピペリンは、腸の壁や肝臓でのグルクロン酸抱合などの代謝を妨げる。そのため、体の外へ出されるはずだったクルクミンが分解されないまま血中に残りやすくなる。では、実際にどのくらい上がるのか。';
+        UPSERT choice:turmeric6_a SET question = question:turmeric6, label = 'A', body = '黒コショウの辛味で体が温まり血流が増えるため、クルクミンが全身に速く運ばれるから', is_correct = false,
+            feedback = '体が温まる感覚や血流の変化は、主な理由ではない。問題なのは「吸収後すぐ代謝されて排出されてしまう」ことのほう。';
+        UPSERT choice:turmeric6_b SET question = question:turmeric6, label = 'B', body = 'ピペリンが腸の壁や肝臓でのグルクロン酸抱合などの代謝を妨げるため、分解されないクルクミンが血中に残りやすくなるから', is_correct = true;
+        UPSERT choice:turmeric6_c SET question = question:turmeric6, label = 'C', body = 'ピペリンがクルクミンと化学的に結合し、効き目の強い別の化合物に変わるから', is_correct = false,
+            feedback = 'ピペリンはクルクミンを別の物質に変えるわけではない。クルクミンが代謝されるのを遅らせるだけ。';
+        UPSERT choice:turmeric6_d SET question = question:turmeric6, label = 'D', body = '黒コショウ自体にもクルクミンが含まれており、摂る量そのものが増えるから', is_correct = false,
+            feedback = 'クルクミンはターメリックに特徴的な成分で、黒コショウにはほとんど含まれていない。黒コショウ側の主な成分はピペリン。';
+
+        -- t7: 効果の大きさ(% の読み方)
+        UPSERT question:turmeric7 SET
+            body = 'ヒトを対象にした研究(Shoba ら, 1998)では、クルクミン 2g にピペリン 20mg を加えて摂ると、クルクミンだけの場合に比べて、バイオアベイラビリティが 2000% に高まったと報告されている(クルクミンだけの場合を 100% とする)。これはおおよそ何倍か。',
+            explanation = 'クルクミンだけの場合を 100% とすると、2000% は約20倍。しかも加えたピペリンは 20mg とごく少量だった。代謝を遅らせるという仕組みの効き目の大きさがわかる。ただ、代謝を遅らせる作用は、本当にクルクミンにだけ働くのだろうか。';
+        UPSERT choice:turmeric7_a SET question = question:turmeric7, label = 'A', body = '約1.2倍(2割増し)', is_correct = false,
+            feedback = '2000% を 20% と読み違えていないか。';
+        UPSERT choice:turmeric7_b SET question = question:turmeric7, label = 'B', body = '約2倍', is_correct = false,
+            feedback = '2倍なら 200%。桁が1つ違う。';
+        UPSERT choice:turmeric7_c SET question = question:turmeric7, label = 'C', body = '約20倍', is_correct = true;
+        UPSERT choice:turmeric7_d SET question = question:turmeric7, label = 'D', body = '約2000倍', is_correct = false,
+            feedback = '% をそのまま「倍」と読んでしまっている。100% が1倍なので、2000% は 20倍。';
+
+        -- t8: 注意点(医薬品との相互作用)
+        UPSERT question:turmeric8 SET
+            body = 'ピペリンが代謝を妨げるという仕組みを踏まえると、ターメリックとピペリンを組み合わせたサプリメントを日常的に摂る際の注意点として、最も適切なものはどれか。',
+            explanation = '体の代謝の仕組みは、特定の成分専用ではない。そのためピペリンは、一部の医薬品の代謝も遅らせ、血中濃度を上げる可能性が報告されている。「吸収がよくなる」は良い面ばかりではない。最後に、「吸収率が上がった」というデータそのものの読み方を考える。';
+        UPSERT choice:turmeric8_a SET question = question:turmeric8, label = 'A', body = '同じ代謝の仕組みで処理される医薬品の血中濃度まで上がり、薬が効きすぎるおそれがある。薬を飲んでいる人は医師や薬剤師に相談する', is_correct = true;
+        UPSERT choice:turmeric8_b SET question = question:turmeric8, label = 'B', body = 'ピペリンは辛味成分なので、辛いものが苦手な人でなければ気にしなくてよい', is_correct = false,
+            feedback = '味の問題ではない。代謝を妨げる作用は、クルクミン以外の物質にも及びうる。';
+        UPSERT choice:turmeric8_c SET question = question:turmeric8, label = 'C', body = '代謝が妨げられるのはクルクミンだけなので、特に注意点はない', is_correct = false,
+            feedback = '体の代謝の仕組みは特定の成分専用ではない。ほかの薬の代謝も妨げられうる。';
+        UPSERT choice:turmeric8_d SET question = question:turmeric8, label = 'D', body = '吸収率が上がるので、ターメリックの量を増やすほど効果も比例して高まる', is_correct = false,
+            feedback = '量を増やせば効果が比例して高まるとは言えない。とりすぎによる副作用のリスクも高まりうる。';
+
+        -- t9: 「吸収率が上がる」と「健康効果」は別(ユニット最終問題)
+        UPSERT question:turmeric9 SET
+            body = 'あるサプリメントの広告に「黒コショウ配合でクルクミンの吸収率が20倍! だから健康効果も20倍!」と書かれていた。この主張に対する評価として最も適切なものはどれか。',
+            explanation = '血中濃度は「効果が出るための前提条件」にすぎず、それ自体は健康上の効果ではない(代理の指標)。吸収率が20倍になっても効果が20倍になるとは限らないし、そもそも効果があるかどうかは、実際の健康状態を指標にした比較試験で確かめる必要がある。仕組みを知ったうえで、その数字が何を測っているのかを見極めよう。';
+        UPSERT choice:turmeric9_a SET question = question:turmeric9, label = 'A', body = '研究で吸収率20倍が示されている以上、健康効果も20倍と考えてよい', is_correct = false,
+            feedback = '吸収率は血中濃度の話。それが病気の予防や改善につながるかどうかは、別に確かめる必要がある。';
+        UPSERT choice:turmeric9_b SET question = question:turmeric9, label = 'B', body = 'サプリメントの広告なので、吸収率が上がるという話も含めてすべて誤りである', is_correct = false,
+            feedback = '吸収率が上がるという研究結果そのものを否定する根拠はない。問題は、そこから健康効果へ飛躍していること。';
+        UPSERT choice:turmeric9_c SET question = question:turmeric9, label = 'C', body = '健康効果は吸収率と無関係なので、黒コショウを加える意味はまったくない', is_correct = false,
+            feedback = '血中に届くことは、効果が出るための前提条件の一つ。無関係とまでは言えない。';
+        UPSERT choice:turmeric9_d SET question = question:turmeric9, label = 'D', body = '吸収率(血中濃度)が上がることは示されていても、それが健康上の効果にどれだけ結びつくかは、効果そのものを測った研究で別に確かめる必要がある', is_correct = true;
+
+        RELATE choice:turmeric1_b -> leads_to -> question:turmeric2;
+        RELATE choice:turmeric2_c -> leads_to -> question:turmeric3;
+        RELATE choice:turmeric3_b -> leads_to -> question:turmeric4;
+        RELATE choice:turmeric4_a -> leads_to -> question:turmeric5;
+        RELATE choice:turmeric5_d -> leads_to -> question:turmeric6;
+        RELATE choice:turmeric6_b -> leads_to -> question:turmeric7;
+        RELATE choice:turmeric7_c -> leads_to -> question:turmeric8;
+        RELATE choice:turmeric8_a -> leads_to -> question:turmeric9;
+        -- turmeric9_d には leads_to を張らない = 正解でユニット完了
+
+        UPSERT unit:turmeric_pepper SET
+            title = 'ターメリックと黒コショウの食べ合わせ',
+            description = 'クルクミンが吸収されにくい理由から、黒コショウ(ピペリン)で吸収率が上がる仕組み、その数字の読み方まで',
+            start_question = question:turmeric1;
         "#,
     )
     .await?
